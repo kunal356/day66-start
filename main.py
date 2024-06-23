@@ -70,6 +70,8 @@ def to_dict(self):
     # Method 2. Altenatively use Dictionary Comprehension to do the same thing.
     return {column.name: getattr(self, column.name) for column in self.__table__.columns}
 
+# HTTP GET - Read Record
+
 
 @app.route("/random", methods=["GET"])
 def get_random_cafe():
@@ -86,14 +88,27 @@ def get_all_cafes():
     cafes_list = [to_dict(cafe) for cafe in result]
     return jsonify(all=cafes_list)
 
-# HTTP GET - Read Record
+
+@app.route("/search", methods=["GET"])
+def find_cafes():
+    query_location = request.args.get('loc')
+
+    result = db.session.execute(
+        db.select(Cafe).where(Cafe.location == query_location)).scalars()
+    cafes_list = [to_dict(cafe) for cafe in result]
+    if len(cafes_list):
+        return jsonify(all=cafes_list)
+    else:
+        not_found_error = {
+            "Not Found": "We don't have a cafe at that location"}
+        return jsonify(error=not_found_error)
+
 
 # HTTP POST - Create Record
 
 # HTTP PUT/PATCH - Update Record
 
 # HTTP DELETE - Delete Record
-
 
 if __name__ == '__main__':
     app.run(debug=True)

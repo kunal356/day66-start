@@ -57,18 +57,18 @@ def home():
 
 
 def to_dict(self):
-        #Method 1. 
-        # dictionary = {}
-        # # Loop through each column in the data record
-        # for column in self.__table__.columns:
-        #     #Create a new dictionary entry;
-        #     # where the key is the name of the column
-        #     # and the value is the value of the column
-        #     dictionary[column.name] = getattr(self, column.name)
-        # return dictionary
-        
-        #Method 2. Altenatively use Dictionary Comprehension to do the same thing.
-        return {column.name: getattr(self, column.name) for column in self.__table__.columns}
+    # Method 1.
+    # dictionary = {}
+    # # Loop through each column in the data record
+    # for column in self.__table__.columns:
+    #     #Create a new dictionary entry;
+    #     # where the key is the name of the column
+    #     # and the value is the value of the column
+    #     dictionary[column.name] = getattr(self, column.name)
+    # return dictionary
+
+    # Method 2. Altenatively use Dictionary Comprehension to do the same thing.
+    return {column.name: getattr(self, column.name) for column in self.__table__.columns}
 
 
 @app.route("/random", methods=["GET"])
@@ -76,7 +76,15 @@ def get_random_cafe():
     result = db.session.execute(
         db.select(Cafe).order_by(func.random())).scalar()
 
-    return jsonify(cafe=(to_dict(result)))
+    return jsonify(cafe=to_dict(result))
+
+
+@app.route("/all", methods=["GET"])
+def get_all_cafes():
+    result = db.session.execute(
+        db.select(Cafe).order_by(Cafe.id)).scalars()
+    cafes_list = [to_dict(cafe) for cafe in result]
+    return jsonify(all=cafes_list)
 
 # HTTP GET - Read Record
 

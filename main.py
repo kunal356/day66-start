@@ -2,6 +2,7 @@ from flask import Flask, jsonify, render_template, request
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy import Integer, String, Boolean
+from sqlalchemy import func
 
 '''
 Install the required packages first: 
@@ -19,8 +20,12 @@ This will install the packages from requirements.txt for this project.
 app = Flask(__name__)
 
 # CREATE DB
+
+
 class Base(DeclarativeBase):
     pass
+
+
 # Connect to Database
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///cafes.db'
 db = SQLAlchemy(model_class=Base)
@@ -50,6 +55,28 @@ with app.app_context():
 def home():
     return render_template("index.html")
 
+
+def to_dict(self):
+        #Method 1. 
+        # dictionary = {}
+        # # Loop through each column in the data record
+        # for column in self.__table__.columns:
+        #     #Create a new dictionary entry;
+        #     # where the key is the name of the column
+        #     # and the value is the value of the column
+        #     dictionary[column.name] = getattr(self, column.name)
+        # return dictionary
+        
+        #Method 2. Altenatively use Dictionary Comprehension to do the same thing.
+        return {column.name: getattr(self, column.name) for column in self.__table__.columns}
+
+
+@app.route("/random", methods=["GET"])
+def get_random_cafe():
+    result = db.session.execute(
+        db.select(Cafe).order_by(func.random())).scalar()
+
+    return jsonify(cafe=(to_dict(result)))
 
 # HTTP GET - Read Record
 

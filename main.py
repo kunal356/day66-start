@@ -71,9 +71,8 @@ def to_dict(self):
     # Method 2. Altenatively use Dictionary Comprehension to do the same thing.
     return {column.name: getattr(self, column.name) for column in self.__table__.columns}
 
+
 # HTTP GET - Read Record
-
-
 @app.route("/random", methods=["GET"])
 def get_random_cafe():
     result = db.session.execute(
@@ -123,9 +122,9 @@ def add():
     db.session.add(new_cafe)
     db.session.commit()
     return jsonify(response={"success": "Successfully added new cafe."})
+
+
 # HTTP PUT/PATCH - Update Record
-
-
 @app.route("/update_price/<id>", methods=["PATCH"])
 def update_price(id):
     new_price = request.args.get('new_price')
@@ -139,6 +138,23 @@ def update_price(id):
         return jsonify(error={error.name: error.description}), error.code
 
 # HTTP DELETE - Delete Record
+
+
+@app.route("/report-closed/<cafe_id>", methods=["DELETE"])
+def report_cafe_closed(cafe_id):
+    api_key = request.args.get("api-key")
+    try:
+        cafe_to_delete = db.get_or_404(Cafe, cafe_id)
+        if api_key == "TopSecretApiKey":
+            db.session.delete(cafe_to_delete)
+            db.session.commit()
+            return jsonify(response={"success": "Successfully deleted the cafe."}), 200
+        else:
+            return jsonify(response={"error": "Sorry, that's not allowed. Make sure you have correct api_key."}), 403
+    except HTTPException as error:
+        error.description = f"Cafe with id: {
+            cafe_id} was not found in the database"
+        return jsonify(error={error.name: error.description}), error.code
 
 
 if __name__ == '__main__':

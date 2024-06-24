@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy import Integer, String, Boolean
 from sqlalchemy import func
+from werkzeug.exceptions import HTTPException
 
 '''
 Install the required packages first: 
@@ -121,10 +122,24 @@ def add():
     )
     db.session.add(new_cafe)
     db.session.commit()
-    return jsonify(response={"success":"Successfully added new cafe."})
+    return jsonify(response={"success": "Successfully added new cafe."})
 # HTTP PUT/PATCH - Update Record
 
+
+@app.route("/update_price/<id>", methods=["PATCH"])
+def update_price(id):
+    new_price = request.args.get('new_price')
+    try:
+        cafe_to_patch = db.get_or_404(Cafe, id)
+        cafe_to_patch.coffee_price = new_price
+        db.session.commit()
+        return jsonify(response={"success": "Successfully updated the price."})
+    except HTTPException as error:
+        error.description = f"Cafe with id: {id} was not found in the database"
+        return jsonify(error={error.name: error.description}), error.code
+
 # HTTP DELETE - Delete Record
+
 
 if __name__ == '__main__':
     app.run(debug=True)
